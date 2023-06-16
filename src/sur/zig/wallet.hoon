@@ -130,6 +130,7 @@
 +$  wallet-poke
   $%  [%import-seed mnemonic=@t password=@t nick=@t]
       [%generate-hot-wallet password=@t nick=@t]
+      [%store-hot-wallet nick=@t address=@ux priv=@t seed=@t]
       [%derive-new-address hdpath=tape nick=@t]
       [%delete-address address=@ux]
       [%edit-nickname address=@ux nick=@t]
@@ -170,6 +171,12 @@
           town=@ux
           action=supported-actions
       ==
+      $:  %unsigned-transaction
+          =origin
+          contract=id:smart
+          town=@ux
+          action=$%([%noun [%validate *]] [%text @t])
+      ==
       ::
       $:  %transaction-to-ship
           =origin
@@ -186,5 +193,59 @@
       [%give-nft to=address:smart item=id:smart]
       [%text @t]
       [%noun *]
+  ==
+::
++$  state-2
+  $:  %2
+      ::  wallet holds a single seed at once
+      ::  address-index notes where we are in derivation path
+      seed=[mnem=@t pass=@t address-index=@ud]
+      ::  many keys can be derived or imported
+      ::  if the private key is ~, that means it's a hardware wallet import
+      keys=(map address:smart [priv=(unit @ux) nick=@t])
+      ::  we track the nonce of each address we're handling
+      ::  TODO: introduce a poke to check nonce from chain and re-align
+      nonces=(map address:smart (map town=@ux nonce=@ud))
+      ::  signatures tracks any signed calls we've made
+      =signed-message-store
+      ::  tokens tracked for each address we're handling
+      tokens=(map address:smart =book)
+      ::  metadata for tokens we track
+      =metadata-store
+      ::  origins we automatically sign and approve txns from
+      approved-origins=(map (pair term wire) [rate=@ud bud=@ud])
+      ::  transactions we've sent that haven't been finalized by sequencer
+      =unfinished-transaction-store
+      ::  finished transactions we've sent
+      =transaction-store
+      ::  transactions we've been asked to sign, keyed by hash
+      =pending-store
+  ==
++$  state-3
+  $:  %3
+      ::  wallet holds a single seed at once
+      ::  address-index notes where we are in derivation path
+      seed=[mnem=@t pass=@t address-index=@ud]
+      ::  many keys can be derived or imported
+      ::  if the private key is ~, that means it's a hardware wallet import
+      keys=(map address:smart [priv=(unit @ux) nick=@t])
+      =share-prefs
+      ::  we track the nonce of each address we're handling
+      ::  TODO: introduce a mechanism to check nonce from chain and re-align
+      nonces=(map address:smart (map town=@ux nonce=@ud))
+      ::  signatures tracks any signed calls we've made
+      =signed-message-store
+      ::  tokens tracked for each address we're handling
+      tokens=(map address:smart =book)
+      ::  metadata for tokens we track
+      =metadata-store
+      ::  origins we automatically sign and approve txns from
+      approved-origins=(map (pair term wire) [rate=@ud bud=@ud])
+      ::  transactions we've sent that haven't been finalized by sequencer
+      =unfinished-transaction-store
+      ::  finished transactions we've sent
+      =transaction-store
+      ::  transactions we've been asked to sign, keyed by hash
+      =pending-store
   ==
 --
