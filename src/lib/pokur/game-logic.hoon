@@ -839,9 +839,12 @@
   ::  sort whole hands to start
   =.  h.hand1  (sort h.hand1 card-compare)
   =.  h.hand2  (sort h.hand2 card-compare)
+  ::  straight flushes rank by their top card, but in a wheel
+  ::  the ace plays low, so it's 5-high
+  ?:  =(r.hand1 9)
+    (gth (straight-top h.hand1) (straight-top h.hand2))
   ::  match tie-breaking strategy to type of hand
   ?:  ?|  =(r.hand1 8)
-          =(r.hand1 5)
           =(r.hand1 5)
           =(r.hand1 0)
         ==
@@ -871,6 +874,14 @@
   ?:  =(freq.a freq.b)
     (card-compare c.a c.b)
   (gth freq.a freq.b)
+::  top card of a sorted straight, where A-2-3-4-5 is 5-high
+++  straight-top
+  |=  hand=pokur-deck
+  ^-  @ud
+  =/  top  (card-val-to-atom -:(snag 0 hand))
+  ?:  &(=(12 top) =(3 (card-val-to-atom -:(snag 1 hand))))
+    3
+  top
 :: Utility function to check if two hands are the same.
 ++  hands-equal
   |=  [h1=pokur-deck h2=pokur-deck]
